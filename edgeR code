@@ -1,0 +1,42 @@
+#set working directory with count files
+setwd("~/RFolder/analyses/tadigest")
+
+library(edgeR)
+
+#read count files into a variable - not using this currently
+#x <- read.delim("quant.tbl",row.names=1)
+
+#group treatment libraries into a grouping variablie (group)
+group <- factor(c(1,1,1,1,2,2))
+
+#create a differential gene expression object
+y <- DGEList(counts=quant.tbl,group=group)
+
+y <- calcNormFactors(y)
+
+#implement study design
+design <- model.matrix(~group)
+
+#check design
+design
+
+#estimate dispersion(?)
+y <- estimateDisp(y,design) 
+
+#plot y - MDS
+plotMDS(y)
+
+#implement quasi-likelihood test
+fit <- glmQLFit(y,design)
+
+qlf <- glmQLFTest(fit,coef=2)
+
+#show top hits
+topTags(qlf)
+
+#summarize number of up&down regulated transcripts
+summary(decideTests(qlf))
+
+#plot DE genes
+plotMD(qlf)
+abline(h=c(-1, 1), col="blue")
